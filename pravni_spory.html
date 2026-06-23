@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Test: Právo v každodenním životě</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --border: #2e2e2e;
+    --text: #e8e8e8;
+    --muted: #777;
+    --accent: #c8a84b;
+    --correct: #4caf7d;
+    --wrong: #e05555;
+    --correct-bg: #0d2b1a;
+    --wrong-bg: #2b0d0d;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0; padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    height: 100%;
+    overscroll-behavior: none;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .header {
+    padding: 24px 20px 18px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .header h1 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .header p {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  .steps {
+    display: flex;
+    gap: 4px;
+    padding: 14px 20px 0;
+    flex-shrink: 0;
+  }
+
+  .step-dot {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--border);
+    transition: background 0.35s;
+  }
+
+  .step-dot.done   { background: var(--accent); }
+  .step-dot.active { background: var(--accent); opacity: 0.4; }
+
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 20px calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .card.animate {
+    animation: fadeUp 0.25s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-header {
+    padding: 18px 18px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .q-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .q-text {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .card-body {
+    padding: 16px 18px 20px;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 110px;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+    font-size: 16px;
+    padding: 12px 14px;
+    resize: none;
+    transition: border-color 0.2s;
+    outline: none;
+    display: block;
+    touch-action: manipulation;
+  }
+
+  textarea:focus   { border-color: var(--accent); }
+  textarea:disabled { opacity: 0.5; pointer-events: none; }
+
+  .btn-row {
+    margin-top: 14px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn {
+    flex: 1;
+    border: none;
+    border-radius: 10px;
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    min-height: 48px;
+    padding: 0 16px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: opacity 0.15s, transform 0.1s;
+    -webkit-appearance: none;
+    appearance: none;
+    user-select: none;
+    -webkit-user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .btn:active   { transform: scale(0.97); opacity: 0.85; }
+  .btn:disabled { opacity: 0.35; pointer-events: none; }
+
+  .btn-check { background: var(--accent); color: #0f0f0f; }
+  /* btn-next hidden by default via JS, no CSS display:none needed */
+
+  .feedback {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    display: none;
+    line-height: 1.55;
+  }
+
+  .feedback.show { display: block; }
+
+  .feedback.correct { background: var(--correct-bg); border: 1px solid var(--correct); color: #7de8a8; }
+  .feedback.partial { background: #1a1a00;           border: 1px solid #8a8000;        color: #d4c84a; }
+  .feedback.wrong   { background: var(--wrong-bg);   border: 1px solid var(--wrong);   color: #f08080; }
+
+  .feedback-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 6px;
+  }
+
+  .feedback-ai { margin-bottom: 10px; }
+
+  .correct-answer {
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .correct-answer strong { color: var(--text); font-weight: 500; }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-top-color: #0f0f0f;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .done-screen {
+    text-align: center;
+    padding: 60px 24px;
+    display: none;
+  }
+
+  .done-screen.show { display: block; animation: fadeUp 0.3s ease forwards; }
+  .done-screen .done-icon { font-size: 52px; margin-bottom: 16px; }
+  .done-screen h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+  .done-screen p  { color: var(--muted); font-size: 14px; }
+
+  .progress-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 10px 20px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s;
+    width: 0%;
+  }
+
+  .progress-text {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="label">Mediální gramotnost &amp; právo</div>
+  <h1>Právo v každodenním životě</h1>
+  <p>Přečti si situaci a napiš, zda je jednání v souladu se zákonem – a proč.</p>
+</div>
+
+<div class="steps" id="steps"></div>
+
+<div class="content">
+  <div class="card" id="card">
+    <div class="card-header">
+      <div class="q-number" id="q-number"></div>
+      <div class="q-text"   id="q-text"></div>
+    </div>
+    <div class="card-body">
+      <textarea id="ta" placeholder="Navrhněte řešení a zdůvodněte ho (zákon/vlastní zkušenost/paragraf)"></textarea>
+      <div class="btn-row" id="btn-row">
+        <button class="btn btn-check" id="btn-check" onclick="handleCheck()">Zkontrolovat</button>
+        <button class="btn" id="btn-next" style="display:none; background:var(--text); color:#0f0f0f;" onclick="nextQuestion()">Pokračovat →</button>
+      </div>
+      <div class="feedback" id="fb">
+        <div class="feedback-label" id="fb-label"></div>
+        <div class="feedback-ai"    id="fb-ai"></div>
+        <div class="correct-answer" id="fb-correct"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="done-screen" id="done-screen">
+    <div class="done-icon">✓</div>
+    <h2>Test dokončen</h2>
+    <p>Prošel/a jsi všemi situacemi.</p>
+  </div>
+</div>
+
+<div class="progress-bar">
+  <span class="progress-text" id="progress-text">1 / 8</span>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+</div>
+
+<script>
+const questions = [
+  {
+    text: "Policisté žádají Sněmovnu o vydání Okamury.",
+    answer: "§ 355 (podněcování k nenávisti)"
+  },
+  {
+    text: "Technaři na kopci blízko Rýmařova poprvé akci zrušili z důvodu žaloby. Víkend byl snad bez dunění.",
+    answer: "Akci nemuseli rušit – měli úřední povolení a legálně pronajatý pozemek."
+  },
+  {
+    text: "Blokace dezinformačních webů pokračuje. Provozovatelé (vlastníci) webů hrozí žalobou.",
+    answer: "§ 357 trestního zákoníku (šíření poplašné zprávy / dezinformace)"
+  },
+  {
+    text: "Nechám se vyfotit fotografem na festivalu, fotku pak najdu na webu a dám si ji na Instagram.",
+    answer: "§ 5 a § 9 autorského zákona – bez souhlasu fotografa nelze dílo užít."
+  },
+  {
+    text: "Uživatel na Facebooku označil plavčíka Jana N. za flákače, blbce a neschopného zaměstnance.",
+    answer: "§ 184 trestního zákoníku (pomluva)"
+  },
+  {
+    text: "Vlastník zavřel cestu vedoucí přes jeho pozemek, výletníci ji chtějí zpět.",
+    answer: "Není v rozporu se zákonem – vlastník pozemku rozhoduje o přístupu."
+  },
+  {
+    text: "Uživatel napsal recenzi na daný podnik. To se nelíbí majiteli a zvažuje trestní oznámení.",
+    answer: "Pravdivá recenze není trestná – není v rozporu se zákonem."
+  },
+  {
+    text: "Sousedka kvůli cigaretovému zápachu zvažuje žalobu.",
+    answer: "Žaloba možná, ale obtížně průkazná – bez lékařské zprávy a důkazů spíše neúspěšná."
+  }
+];
+
+const total = questions.length;
+let current = 0;
+let nextBtnTimeout = null; // track timeout so we can cancel on error
+
+function escape(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function buildSteps() {
+  const el = document.getElementById('steps');
+  el.innerHTML = '';
+  questions.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'step-dot' + (i < current ? ' done' : i === current ? ' active' : '');
+    el.appendChild(d);
+  });
+}
+
+function renderQuestion() {
+  // Cancel any pending next-button reveal from previous question
+  if (nextBtnTimeout) { clearTimeout(nextBtnTimeout); nextBtnTimeout = null; }
+
+  document.getElementById('q-number').textContent = `Situace ${String(current + 1).padStart(2, '0')} / ${total}`;
+  document.getElementById('q-text').textContent = questions[current].text;
+
+  const ta = document.getElementById('ta');
+  ta.value = '';
+  ta.disabled = false;
+  ta.style.borderColor = '';
+
+  const btnCheck = document.getElementById('btn-check');
+  btnCheck.disabled = false;
+  btnCheck.innerHTML = 'Zkontrolovat';
+  btnCheck.style.background = 'var(--accent)';
+  btnCheck.style.color = '#0f0f0f';
+
+  const btnNext = document.getElementById('btn-next');
+  btnNext.style.display = 'none';
+  btnNext.textContent = current < total - 1 ? 'Pokračovat →' : 'Dokončit ✓';
+
+  document.getElementById('fb').className = 'feedback';
+  document.getElementById('fb-label').textContent = '';
+  document.getElementById('fb-ai').textContent = '';
+  document.getElementById('fb-correct').innerHTML = '';
+
+  document.getElementById('progress-text').textContent = `${current + 1} / ${total}`;
+  document.getElementById('progress-fill').style.width = `${(current / total) * 100}%`;
+
+  buildSteps();
+
+  // Re-trigger card animation cleanly
+  const card = document.getElementById('card');
+  card.classList.remove('animate');
+  void card.offsetWidth; // force reflow
+  card.classList.add('animate');
+
+  document.querySelector('.content').scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function handleCheck() {
+  const ta = document.getElementById('ta');
+  const userAnswer = ta.value.trim();
+
+  if (!userAnswer) {
+    ta.focus();
+    ta.style.transition = 'border-color 0s';
+    ta.style.borderColor = 'var(--wrong)';
+    setTimeout(() => {
+      ta.style.transition = 'border-color 0.2s';
+      ta.style.borderColor = '';
+    }, 800);
+    return;
+  }
+
+  const btnCheck = document.getElementById('btn-check');
+  btnCheck.disabled = true;
+  ta.disabled = true;
+  btnCheck.innerHTML = '<div class="spinner"></div>Hodnotím…';
+
+  try {
+    const { verdict, feedbackText } = await callAI(current, userAnswer);
+
+    // ČÁSTEČNĚ must be checked before SPRÁVNĚ to avoid substring false-match
+    const cssClass = verdict === 'SPRÁVNĚ' ? 'correct' : verdict === 'ČÁSTEČNĚ' ? 'partial' : 'wrong';
+    const labelMap = { 'SPRÁVNĚ': '✓ Správně', 'ČÁSTEČNĚ': '◑ Částečně správně', 'ŠPATNĚ': '✗ Špatně' };
+    const colorMap = { 'SPRÁVNĚ': 'var(--correct)', 'ČÁSTEČNĚ': '#8a8000', 'ŠPATNĚ': 'var(--wrong)' };
+
+    const fb = document.getElementById('fb');
+    fb.className = `feedback show ${cssClass}`;
+    document.getElementById('fb-label').textContent = labelMap[verdict];
+    document.getElementById('fb-ai').textContent = feedbackText;
+    // Safe text insertion for answer key
+    const fbCorrect = document.getElementById('fb-correct');
+    fbCorrect.innerHTML = '';
+    const strong = document.createElement('strong');
+    strong.textContent = 'Klíč: ';
+    fbCorrect.appendChild(strong);
+    fbCorrect.appendChild(document.createTextNode(questions[current].answer));
+
+    btnCheck.innerHTML = labelMap[verdict];
+    btnCheck.style.background = colorMap[verdict];
+    btnCheck.style.color = '#fff';
+
+    document.getElementById('progress-fill').style.width = `${((current + 1) / total) * 100}%`;
+    buildSteps();
+
+    // Reveal next button after 10s – store timeout id so it can be cancelled
+    const btnNext = document.getElementById('btn-next');
+    btnNext.style.display = 'none';
+    nextBtnTimeout = setTimeout(() => {
+      btnNext.style.display = 'flex';
+      nextBtnTimeout = null;
+    }, 10000);
+
+    // Scroll to feedback
+    setTimeout(() => {
+      document.querySelector('.content').scrollTo({ top: 9999, behavior: 'smooth' });
+    }, 150);
+
+  } catch (e) {
+    // On error: re-enable controls, cancel any pending next-button reveal
+    if (nextBtnTimeout) { clearTimeout(nextBtnTimeout); nextBtnTimeout = null; }
+    btnCheck.disabled = false;
+    ta.disabled = false;
+    btnCheck.innerHTML = 'Zkontrolovat';
+    const fb = document.getElementById('fb');
+    fb.className = 'feedback show wrong';
+    document.getElementById('fb-label').textContent = 'Chyba připojení';
+    document.getElementById('fb-ai').textContent = 'Nepodařilo se spojit s AI. Zkus to znovu.';
+    document.getElementById('fb-correct').innerHTML = '';
+  }
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= total) {
+    document.getElementById('card').style.display = 'none';
+    document.getElementById('steps').style.display = 'none';
+    document.getElementById('done-screen').classList.add('show');
+    document.getElementById('progress-text').textContent = `${total} / ${total}`;
+    document.getElementById('progress-fill').style.width = '100%';
+    return;
+  }
+  renderQuestion();
+}
+
+async function callAI(index, userAnswer) {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1000,
+      system: `Jsi učitel společenských věd na střední škole v České republice. Hodnotíš odpovědi žáků z oblasti práva. Piš česky, přátelsky. Komentář může být delší. Pokud žák uvede správný paragraf nebo zákon (byť bez uvedení názvu zákoníku), hodnoť jako SPRÁVNĚ. Nevyžaduj explicitní zmínku o trestním zákoníku ani jiném zákoníku – samotný paragraf stačí. Na konci uveď POUZE jedno slovo na nový řádek: SPRÁVNĚ nebo ČÁSTEČNĚ nebo ŠPATNĚ.`,
+      messages: [{
+        role: "user",
+        content: `Otázka: ${questions[index].text}\n\nSprávná odpověď (klíč): ${questions[index].answer}\n\nŽákova odpověď: ${userAnswer}\n\nZhodnoť žákovu odpověď.`
+      }]
+    })
+  });
+
+  if (!response.ok) throw new Error(`API error ${response.status}`);
+
+  const data = await response.json();
+  if (!data.content || !data.content[0]) throw new Error('Prázdná odpověď');
+
+  const text = data.content[0].text || "";
+  const lines = text.trim().split('\n').filter(l => l.trim() !== '');
+  const lastLine = lines[lines.length - 1].trim().toUpperCase();
+
+  // Check ČÁSTEČNĚ before SPRÁVNĚ to avoid substring collision
+  let verdict = 'ŠPATNĚ';
+  if (lastLine.includes('ČÁSTEČNĚ')) verdict = 'ČÁSTEČNĚ';
+  else if (lastLine.includes('SPRÁVNĚ')) verdict = 'SPRÁVNĚ';
+
+  const feedbackText = lines.slice(0, -1).join('\n').trim();
+  return { verdict, feedbackText };
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
